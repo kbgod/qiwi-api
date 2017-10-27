@@ -1,7 +1,7 @@
 <?php
-namespace Qiwi;
+namespace Monarkhov\Qiwi;
 
-class QiwiAPI
+class QiwiApi
 {
 
     private $token;
