@@ -36,8 +36,7 @@ class QiwiAPI {
 		{
 			curl_setopt($ch, CURLOPT_URL, $this->url.$method.(is_array($data)?'?'.http_build_query($data):(($data!==null)?'?'.$data:'')));
 		}
-        $response = curl_exec($ch);
-        var_dump(curl_error($ch));
+        	$response = curl_exec($ch);
 		curl_close($ch);
 		return $response;
 	}
