@@ -26,7 +26,7 @@ class QiwiAPI
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        if ($type=='POST') {
+        if ($type == 'POST') {
             curl_setopt($ch, CURLOPT_URL, $this->url.$method);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
@@ -34,7 +34,6 @@ class QiwiAPI
             curl_setopt($ch, CURLOPT_URL, $this->url.$method.(is_array($data)?'?'.http_build_query($data):(($data!==null)?'?'.$data:'')));
         }
         $response = curl_exec($ch);
-        var_dump(curl_error($ch));
         curl_close($ch);
         return $response;
     }
@@ -48,7 +47,7 @@ class QiwiAPI
         $query['paymentMethod']['type'] = 'Account';
         $query['paymentMethod']['accountId'] = "$currency";
         $query['fields']['account'] = $purse;
-        if ($comment!=null) {
+        if ($comment != null) {
             $query['comment'] = $comment;
         }
         return json_decode($this->request('POST', 'sinap/api/v2/terms/99/payments', json_encode($query)), true);
