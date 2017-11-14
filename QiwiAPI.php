@@ -1,32 +1,42 @@
 <?php
 namespace Monarkhov\Qiwi;
 
-class QiwiApi
+class QiwiAPI
 {
-
-    private $token;
     private $url = 'https://edge.qiwi.com/';
 
     const CURRENCY_RUB = 643;
+    const CURRENCY_KZT = 398;
 
     const PROVIDER_QIWI = 99;
     const PROVIDER_VISA = 1963;
 
-    public function __construct($token)
+    const OPERATION_ALL = 'ALL';
+    const OPERATION_IN = 'IN';
+    const OPERATION_OUT = 'OUT';
+    const OPERATION_QIWI_CARD = 'QIWI_CARD';
+
+    private $token;
+    private $purse;
+
+    public function __construct($purse, $token)
     {
+        $this->purse = $purse;
         $this->token = $token;
     }
 
-    public function request($type = 'GET', $method, $data = null, $headers)
+    public function request($type = 'GET', $method, $data = null, $headers = null)
     {
         $ch = curl_init();
-        $headers = ["Authorization: Bearer {$this->token}", 'Content-Type: application/json', 'Accept: application/json'];
+        $headers[] = "Authorization: Bearer {$this->token}";
+        $headers[] = 'Content-Type: application/json';
+        $headers[] = 'Accept: application/json';
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        if ($type == 'POST') {
+        if ($type=='POST') {
             curl_setopt($ch, CURLOPT_URL, $this->url.$method);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
@@ -47,17 +57,16 @@ class QiwiApi
         $query['paymentMethod']['type'] = 'Account';
         $query['paymentMethod']['accountId'] = "$currency";
         $query['fields']['account'] = $purse;
-        if ($comment != null) {
+        if ($comment!=null) {
             $query['comment'] = $comment;
         }
         return json_decode($this->request('POST', 'sinap/api/v2/terms/99/payments', json_encode($query)), true);
     }
 
-    public function getHistory($purse, $start, $end, $rows = 50)
+    public function getHistory($rows = 50, $operation = 'ALL', $start = null, $end = null)
     {
-        $start = urlencode(date("Y-m-d", $start).'T00:00:00Z');
-        $end = urlencode(date("Y-m-d", $end).'T23:59:59Z');
-        $query = http_build_query(['rows' => $rows]);
-        return json_decode($this->request('GET', 'payment-history/v1/persons/'.$purse.'/payments', $query), true)['data'];
+        $start = date("Y-m-d", $start).'T00:00:00+03:00';
+        $end = date("Y-m-d", $end).'T23:59:59+03:00';
+        return json_decode($this->request('GET', 'payment-history/v1/persons/'.$this->purse.'/payments', ['rows' => $rows, 'startDate' => $start, 'endDate' => $end, 'operation' => $operation]));
     }
 }
